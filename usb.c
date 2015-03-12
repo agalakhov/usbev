@@ -18,7 +18,7 @@ usb_find_devices()
     struct libusb_device **devices;
     ssize_t ndevices = libusb_get_device_list(ctx, &devices);
     if (ndevices < 0) {
-        fprintf(stderr, "usb: %i: %s\n", ndevices, libusb_error_name(ndevices));
+        fprintf(stderr, "usb: %i: %s\n", (int)ndevices, libusb_error_name(ndevices));
     }
     printf("%u devices found\n", (unsigned) ndevices);
     for (unsigned i = 0; i < ndevices; ++i) {
