@@ -38,4 +38,6 @@ const struct usb_id usb_ids_knx[] = {
     { 0x0e77, 0x0121 },
     /*  Weinzierl Engineering GmbH: KNX-USB Data Interface (MerlinGerin UP) */
     { 0x0e77, 0x0141 },
+    /* END */
+    { 0, 0 }
 };
