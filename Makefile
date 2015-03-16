@@ -17,7 +17,7 @@ NOWARN =
 $(NOWARN): WFLAGS =
 
 PKG_CFLAGS = $(shell pkg-config --cflags $(PACKAGES))
-PKG_LIBS = $(shell pkg-config --libs $(PACKAGES))
+PKG_LIBS = $(shell pkg-config --libs $(PACKAGES)) -lev
 
 DEPS = $(OBJS:.o=.d)
 ifneq ($(MAKECMDGOALS),clean)
