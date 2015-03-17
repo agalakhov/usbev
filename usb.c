@@ -47,6 +47,7 @@ usb_find_and_open(struct libusb_context *ctx, predicate_t predicate, void *closu
             }
             if (libusb_claim_interface(ret, 0)) {
                 fprintf(stderr, "skipping busy device\n");
+                libusb_close(ret);
                 continue;
             }
             libusb_release_interface(ret, 0);
@@ -57,7 +58,17 @@ usb_find_and_open(struct libusb_context *ctx, predicate_t predicate, void *closu
     return ret;
 }
 
-static void callback(struct libusb_transfer *transfer)
+static void
+ev_usb_register(struct ev_loop *loop, struct libusb_context *usbctx)
+{
+    (void) loop;
+    (void) usbctx;
+}
+
+volatile bool brk = false;
+
+void
+callback(struct libusb_transfer *transfer)
 {
         const uint8_t *buf = transfer->buffer;
         int size = transfer->actual_length;
@@ -76,12 +87,12 @@ static void callback(struct libusb_transfer *transfer)
             printf("%s%02x", i ? " " : "", buf[i]);
         }
         printf("\033[0m\n");
-
-        int err = libusb_submit_transfer(transfer);
-        if (err) {
-            fprintf(stderr, "usb: xfer %i: %s\n", err, libusb_error_name(err));
-            abort();
-        }
+        brk = true;
+//        int err = libusb_submit_transfer(transfer);
+//        if (err) {
+//            fprintf(stderr, "usb: xfer %i: %s\n", err, libusb_error_name(err));
+//            abort();
+//        }
 }
 
 int main()
@@ -98,6 +109,8 @@ int main()
         fprintf(stderr, "usb: %i: %s\n", err, libusb_error_name(err));
         abort();
     }
+
+    ev_usb_register(loop, ctx);
 
     struct libusb_device_handle *dev = usb_find_and_open(ctx, list_predicate, (void *)usb_ids_knx);
     if (! dev) {
@@ -164,7 +177,7 @@ int main()
         }
     }
 
-    while (true) {
+    while (! brk) {
         int err = libusb_handle_events(ctx);
         if (err) {
             fprintf(stderr, "usb: events %i: %s\n", err, libusb_error_name(err));
@@ -189,9 +202,9 @@ int main()
             abort();
         }
     }
-
     libusb_close(dev);
 
     libusb_exit(ctx);
+    ev_loop_destroy(loop);
     return 0;
 }
