@@ -65,7 +65,7 @@ ev_usb_register(struct ev_loop *loop, struct libusb_context *usbctx)
     (void) usbctx;
 }
 
-volatile bool brk = false;
+volatile int evcount = 5;
 
 void
 callback(struct libusb_transfer *transfer)
@@ -87,12 +87,13 @@ callback(struct libusb_transfer *transfer)
             printf("%s%02x", i ? " " : "", buf[i]);
         }
         printf("\033[0m\n");
-        brk = true;
-//        int err = libusb_submit_transfer(transfer);
-//        if (err) {
-//            fprintf(stderr, "usb: xfer %i: %s\n", err, libusb_error_name(err));
-//            abort();
-//        }
+        if (--evcount) {
+            int err = libusb_submit_transfer(transfer);
+            if (err) {
+                fprintf(stderr, "usb: xfer %i: %s\n", err, libusb_error_name(err));
+                abort();
+            }
+        }
 }
 
 int main()
@@ -177,7 +178,7 @@ int main()
         }
     }
 
-    while (! brk) {
+    while (evcount) {
         int err = libusb_handle_events(ctx);
         if (err) {
             fprintf(stderr, "usb: events %i: %s\n", err, libusb_error_name(err));
