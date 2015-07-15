@@ -45,6 +45,7 @@ usb_find_and_open(struct libusb_context *ctx, predicate_t predicate, void *closu
                 fprintf(stderr, "usb: can't open device: %i: %s\n", err, libusb_error_name(err));
                 continue;
             }
+            break;
             if (libusb_claim_interface(ret, 0)) {
                 fprintf(stderr, "skipping busy device\n");
                 libusb_close(ret);
@@ -62,7 +63,8 @@ static void
 ev_usb_register(struct ev_loop *loop, struct libusb_context *usbctx)
 {
     (void) loop;
-    (void) usbctx;
+    const struct libusb_pollfd** fds = libusb_get_pollfds(usbctx);
+    free(fds);
 }
 
 volatile int evcount = 5;

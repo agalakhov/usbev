@@ -1,7 +1,7 @@
 .PHONY: all clean
 .DEFAULT_GOAL = all
 
-CC = gcc
+CC = clang
 CFLAGS += -g -O2 -std=c11 -pedantic -pedantic-errors
 LDFLAGS +=
 
